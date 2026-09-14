@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from PIL import Image
-from utils.mock_api import call_gluten_guard_api
+from utils.api import call_gluten_guard_api
 
 # Friendly Hero Header
 st.title("Gluten Guard", icon=":material/shield_with_heart:")
@@ -112,53 +112,72 @@ if image_to_process is not None:
 
     with col_results:
         with st.spinner("🤖 Analyzing dish and assessing Celiac risk..."):
-            # Call Mock API -> Returns exactly 2 fields: risk_score and text
-            api_response = call_gluten_guard_api(image_to_process)
+            try:
+                api_response = call_gluten_guard_api(image_to_process)
+            except Exception as e:
+                api_response = None
+                st.error(f"API request failed: {e}")
 
-        risk_score = api_response.get("risk_score", 0)
-        text = api_response.get("text", "")
+        if api_response and api_response.get("predictions"):
+            top = api_response["predictions"][0]
+            celiac_risk = top.get("celiac_risk", "Unknown")
+            confidence_pct = round(top.get("confidence", 0) * 100)
+            contains_gluten = top.get("contains_gluten")
+            questions = top.get("server_questions", [])
 
-        # Determine risk level and color scheme
-        if risk_score >= 67:
-            risk_color = "#e11d48"
-            risk_bg = "#fff1f2"
-            risk_label = "HIGH RISK"
-            badge_icon = "🚨"
-        elif risk_score >= 34:
-            risk_color = "#d97706"
-            risk_bg = "#fffbeb"
-            risk_label = "MODERATE RISK"
-            badge_icon = "⚠️"
+            gluten_text = "Yes" if contains_gluten is True else ("No" if contains_gluten is False else "Uncertain")
+
+            questions_md = "\n".join(
+                f'{i + 1}. **"{q}"**' for i, q in enumerate(questions)
+            ) if questions else "*No specific questions available.*"
+
+            text = (
+                f"### Identified Dish: **{top.get('label', 'Unknown')}**\n\n"
+                f"**Celiac Risk:** {celiac_risk}\n\n"
+                f"**Contains Gluten:** {gluten_text}\n\n"
+                f"**Model Confidence:** {confidence_pct}%\n\n"
+                f"---\n\n"
+                f"**Risk Analysis:** {top.get('notes', '')}\n\n"
+                f"#### 📋 Questions to ask your server:\n{questions_md}"
+            )
+            has_result = True
         else:
-            risk_color = "#059669"
-            risk_bg = "#f0fdf4"
-            risk_label = "LOW RISK"
-            badge_icon = "✅"
+            celiac_risk = "Unknown"
+            text = "*No predictions returned from the API.*"
+            has_result = False
 
-        # Risk Score Metric Card
+        # Risk level styling
+        risk_styles = {
+            "High":   {"color": "#e11d48", "bg": "#fff1f2", "icon": "🚨", "label": "HIGH RISK"},
+            "Medium": {"color": "#d97706", "bg": "#fffbeb", "icon": "⚠️", "label": "MODERATE RISK"},
+            "Low":    {"color": "#059669", "bg": "#f0fdf4", "icon": "✅", "label": "LOW RISK"},
+            "Unknown": {"color": "#6366f1", "bg": "#eef2ff", "icon": "❓", "label": "UNKNOWN RISK"},
+        }
+        rs = risk_styles.get(celiac_risk, risk_styles["Unknown"])
+        risk_color, risk_bg, badge_icon, risk_label = rs["color"], rs["bg"], rs["icon"], rs["label"]
+
+        # Risk Assessment Card
         with st.container(border=True):
             st.caption("CELIAC GLUTEN RISK ASSESSMENT")
 
-            # Big visual score badge
+            # Big risk-level badge
             st.markdown(
                 f"""
-                <div style="background-color: {risk_bg}; border: 1.5px solid {risk_color}; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 12px;">
-                    <div style="font-size: 0.85rem; font-weight: 700; color: {risk_color}; letter-spacing: 0.05em; margin-bottom: 4px;">
-                        {badge_icon} {risk_label}
-                    </div>
-                    <div style="font-size: 2.8rem; font-weight: 800; color: {risk_color}; line-height: 1;">
-                        {risk_score}%
-                    </div>
-                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">
-                        Estimated Gluten Probability
+                <div style="background-color: {risk_bg}; border: 1.5px solid {risk_color}; border-radius: 12px; padding: 20px 16px; text-align: center; margin-bottom: 12px;">
+                    <div style="font-size: 1.6rem; margin-bottom: 4px;">{badge_icon}</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: {risk_color}; letter-spacing: 0.03em; line-height: 1.1;">
+                        {risk_label}
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            # Progress bar matching score
-            st.progress(risk_score / 100)
+            # Quick-glance metrics
+            if has_result:
+                m1, m2 = st.columns(2)
+                m1.metric("Contains Gluten", gluten_text)
+                m2.metric("Model Confidence", f"{confidence_pct}%")
 
     # Detailed Analysis Text Card (Second returned field)
     st.markdown("##")
