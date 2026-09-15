@@ -13,20 +13,22 @@ def get_base64_logo():
             return base64.b64encode(f.read()).decode()
     return None
 
-# Header with Logo
+# Header with Logo and Two-Tone Title
 logo_b64 = get_base64_logo()
 if logo_b64:
     st.markdown(
         f"""
         <div style="display: flex; align-items: center; gap: 14px; margin-top: 4px; margin-bottom: 6px;">
             <img src="data:image/png;base64,{logo_b64}" style="width: 52px; height: 52px; object-fit: contain;" />
-            <h1 style="margin: 0; padding: 0; font-size: 2.3rem; font-weight: 800; line-height: 1.1;">GlutenGuard</h1>
+            <h1 style="margin: 0; padding: 0; font-size: 2.3rem; font-weight: 800; line-height: 1.1;">
+                <span style="color: #f59e0b;">Gluten</span><span style="color: #2563eb;">Guard</span>
+            </h1>
         </div>
         """,
         unsafe_allow_html=True,
     )
 else:
-    st.title("GlutenGuard")
+    st.markdown("# :orange[Gluten]:blue[Guard]")
 
 st.caption("AI-powered gluten-risk assessment for meals. Snap, assess, eat safely.")
 st.space("small")

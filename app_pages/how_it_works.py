@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Main header for How It Works
-st.subheader("How Gluten Guard Works", anchor=False)
+st.subheader("How GlutenGuard Works", anchor=False)
 st.caption("A quick look inside our AI-powered dish recognition & Celiac risk assessment pipeline.")
 
 st.markdown("---")
@@ -17,7 +17,7 @@ col_text1, col_img1 = st.columns([1.1, 0.9], gap="large", vertical_alignment="ce
 with col_text1:
     st.markdown("### 1. Fine-tuned CNN Dish Recognition")
     st.write(
-        "When you snap or upload a photo of your meal, Gluten Guard feeds the image into a "
+        "When you snap or upload a photo of your meal, GlutenGuard feeds the image into a "
         "**fine-tuned Convolutional Neural Network (CNN)** trained on the **Food-101 dataset** "
         "(over 101,000 food images spanning 101 diverse culinary categories)."
     )
@@ -70,7 +70,7 @@ with col_img2:
 with col_text2:
     st.markdown("### 2. Celiac & Gluten Risk Mapping")
     st.write(
-        "Once the dish is identified, Gluten Guard maps it directly against a comprehensive "
+        "Once the dish is identified, GlutenGuard maps it directly against a comprehensive "
         "**Celiac & Gluten Risk Index** curated for that culinary category."
     )
     st.write(
@@ -87,7 +87,7 @@ col_text3, col_img3 = st.columns([1.1, 0.9], gap="large", vertical_alignment="ce
 with col_text3:
     st.markdown("### 3. Dish-Specific Restaurant Inquiries")
     st.write(
-        "Instead of generic questions, Gluten Guard equips you with **precise, dish-tailored questions** "
+        "Instead of generic questions, GlutenGuard equips you with **precise, dish-tailored questions** "
         "to ask your server or chef before ordering."
     )
     st.write(
@@ -126,7 +126,7 @@ c1, c2, c3 = st.columns([1, 2, 1])
 with c2:
     st.page_link(
         "app_pages/home.py",
-        label="Try Gluten Guard Now",
+        label="Try GlutenGuard Now",
         icon=":material/rocket_launch:",
         width="stretch",
     )

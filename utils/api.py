@@ -36,7 +36,7 @@ def _read_image_bytes(image_input: Any) -> tuple[bytes, str]:
 
 def call_gluten_guard_api(image_input: Any = None) -> ApiResult:
     """
-    Upload an image to the Gluten Guard API and return the parsed response.
+    Upload an image to the GlutenGuard API and return the parsed response.
 
     The API returns:
       - filename: str | None
@@ -54,7 +54,7 @@ def call_gluten_guard_api(image_input: Any = None) -> ApiResult:
         resp.raise_for_status()
     except requests.exceptions.ConnectionError:
         raise RuntimeError(
-            f"Could not connect to the Gluten Guard API at {PREDICT_URL}.\n"
+            f"Could not connect to the GlutenGuard API at {PREDICT_URL}.\n"
             f"Make sure the API is running (e.g. `uvicorn api.fast:app --reload --port 8000`)."
         )
     return resp.json()
