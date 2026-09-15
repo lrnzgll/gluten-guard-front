@@ -4,10 +4,31 @@ from PIL import Image
 from utils.api import call_gluten_guard_api
 from utils.layout import show_logo
 
-# Header
-st.title("GlutenGuard")
-st.subheader("AI-powered gluten-risk assessment for meals.")
-st.subheader("Snap, assess, eat safely.")
+import base64
+
+def get_base64_logo():
+    logo_path = os.path.join("assets", "logo.png")
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
+
+# Header with Logo
+logo_b64 = get_base64_logo()
+if logo_b64:
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center; gap: 14px; margin-top: 4px; margin-bottom: 6px;">
+            <img src="data:image/png;base64,{logo_b64}" style="width: 52px; height: 52px; object-fit: contain;" />
+            <h1 style="margin: 0; padding: 0; font-size: 2.3rem; font-weight: 800; line-height: 1.1;">GlutenGuard</h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+else:
+    st.title("GlutenGuard")
+
+st.caption("AI-powered gluten-risk assessment for meals. Snap, assess, eat safely.")
 st.space("small")
 
 # Photo Input Selection
