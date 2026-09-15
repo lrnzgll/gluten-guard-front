@@ -7,7 +7,7 @@ st.caption("A quick look inside our AI-powered dish recognition & Celiac risk as
 st.markdown("---")
 
 # Navigation link back to Home
-st.page_link("app_pages/home.py", label="← Back to Home & Try Now", icon=":material/arrow_back:")
+st.page_link("app_pages/home.py", label="Back to Home & Try Now", icon=":material/arrow_back:")
 
 st.markdown("##")
 
@@ -50,17 +50,17 @@ col_img2, col_text2 = st.columns([0.9, 1.1], gap="large", vertical_alignment="ce
 
 with col_img2:
     with st.container(border=True):
-        st.caption("🛡️ **Ingredient & Risk Matrix**")
+        st.caption("🛡️ **Celiac Risk Index Mapping**")
         st.markdown(
             """
             <div style="background-color: #fff1f2; border: 1px solid #fecdd3; padding: 18px; border-radius: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-weight: 700; color: #9f1239;">Celiac Risk Level</span>
-                    <span style="background-color: #e11d48; color: white; font-weight: 700; padding: 2px 10px; border-radius: 12px; font-size: 0.85rem;">88% HIGH</span>
+                    <span style="font-weight: 700; color: #9f1239;">Celiac Risk Profile</span>
+                    <span style="background-color: #e11d48; color: white; font-weight: 700; padding: 2px 10px; border-radius: 12px; font-size: 0.85rem;">HIGH RISK</span>
                 </div>
                 <div style="font-size: 0.85rem; color: #881337; line-height: 1.5;">
-                    ⚠️ Contains traditional wheat semolina pasta.<br/>
-                    ⚠️ Potential flour thickener in egg mixture.
+                    ⚠️ Traditional recipe uses wheat semolina pasta.<br/>
+                    ⚠️ Common risk from shared boiling water.
                 </div>
             </div>
             """,
@@ -68,14 +68,15 @@ with col_img2:
         )
 
 with col_text2:
-    st.markdown("### 2. Ingredient & Risk Assessment")
+    st.markdown("### 2. Celiac & Gluten Risk Mapping")
     st.write(
-        "Once the dish is identified, Gluten Guard evaluates its **primary ingredients** and "
-        "known culinary preparation methods against a comprehensive **Celiac & Gluten Risk Index**."
+        "Once the dish is identified, Gluten Guard maps it directly against a comprehensive "
+        "**Celiac & Gluten Risk Index** curated for that culinary category."
     )
     st.write(
-        "It flags obvious sources (wheat, barley, rye) as well as **hidden gluten vectors** "
-        "(soy sauce, roux thickeners, shared pasta water, and shared fryer oils)."
+        "This index factors in standard recipe preparation methods, traditional ingredients, "
+        "and **hidden gluten vectors**—such as flour thickeners, soy sauce marinades, shared pasta water, "
+        "and shared fryer oils."
     )
 
 st.markdown("##")

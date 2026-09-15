@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="Gluten Guard",
+    page_title="GlutenGuard",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -10,6 +10,11 @@ st.set_page_config(
 page = st.navigation(
     [
         st.Page("app_pages/home.py", title="Home", icon=":material/home:"),
+        st.Page(
+            "app_pages/food_categories.py",
+            title="Food Categories",
+            icon=":material/restaurant_menu:",
+        ),
         st.Page(
             "app_pages/how_it_works.py",
             title="How It Works",
