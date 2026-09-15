@@ -2,59 +2,41 @@ import os
 import streamlit as st
 from PIL import Image
 from utils.api import call_gluten_guard_api
+from utils.layout import show_logo
 
-# Friendly Hero Header
-st.title("Gluten Guard", icon=":material/shield_with_heart:")
-st.subheader("Intelligent dish recognition & Celiac risk assessment", anchor=False)
+# Header
+st.title("GlutenGuard")
+st.subheader("AI-powered gluten-risk assessment for meals.")
+st.subheader("Snap, assess, eat safely.")
+st.space("small")
 
-# Welcoming Explanation Card
-with st.container(border=True):
-    col_desc, col_link = st.columns([2.5, 1], vertical_alignment="center")
-    with col_desc:
-        st.markdown(
-            "Welcome! **Gluten Guard** is your friendly, intelligent dining companion. "
-            "Simply snap or upload a photo of any dish, and our AI will quickly recognize the meal "
-            "and calculate a **Gluten Risk Score** to help you navigate restaurant menus safely and confidently."
-        )
-    with col_link:
-        st.page_link(
-            "app_pages/how_it_works.py",
-            label="How it works →",
-            icon=":material/info:",
-            width="stretch",
-        )
-
-st.markdown("---")
-
-st.markdown("### 📸 Try It Now")
-st.caption("Upload a dish photo or take a picture with your mobile camera to test.")
-
+# Photo Input Selection
 input_mode = st.segmented_control(
-    "Choose photo input method:",
-    options=["📁 Upload Image", "📷 Take Photo", "✨ Try Sample Dishes"],
-    default="📁 Upload Image",
+    "Photo input method",
+    options=["📁 Upload image", "📷 Take photo", "✨ Sample dishes"],
+    default="📁 Upload image",
     label_visibility="collapsed",
 )
 
 uploaded_file = None
 image_to_process = None
 
-if input_mode == "📁 Upload Image":
+if input_mode == "📁 Upload image":
     uploaded_file = st.file_uploader(
-        "Upload a food image (JPG, PNG, WEBP)",
+        "Upload a food photo (JPG, PNG, WEBP)",
         type=["jpg", "jpeg", "png", "webp"],
         help="On mobile devices, this opens your photo gallery or camera.",
     )
     if uploaded_file:
         image_to_process = uploaded_file
 
-elif input_mode == "📷 Take Photo":
+elif input_mode == "📷 Take photo":
     camera_file = st.camera_input("Take a photo of your meal")
     if camera_file:
         image_to_process = camera_file
 
-elif input_mode == "✨ Try Sample Dishes":
-    st.write("Click a sample dish below to test the AI instantly:")
+elif input_mode == "✨ Sample dishes":
+    st.caption("Select a sample dish to test the AI instantly:")
     sample_cols = st.columns(4)
 
     sample_choice = None
@@ -82,36 +64,31 @@ elif input_mode == "✨ Try Sample Dishes":
                 self.path = os.path.join("assets", "samples", name)
         image_to_process = SampleFile(st.session_state["sample_active"])
 
+st.divider()
+
 # Process image if available
 if image_to_process is not None:
-    st.markdown("##")
-
-    # Layout columns: Left for Image Preview, Right for Assessment Results
-    col_img, col_results = st.columns([1, 1.3], gap="large")
+    col_img, col_results = st.columns([1, 1.25], gap="large")
 
     with col_img:
         with st.container(border=True):
-            st.markdown("#### 🍽️ Submitted Dish")
+            st.markdown("##### Dish photo")
             try:
-                # If real file bytes uploaded or taken via camera
                 if hasattr(image_to_process, "getvalue"):
                     img = Image.open(image_to_process)
                     st.image(img, width="stretch")
-                # If sample selected and real image file exists in assets/samples/
                 elif hasattr(image_to_process, "path") and os.path.exists(image_to_process.path):
                     st.image(image_to_process.path, width="stretch", caption=f"Sample: {image_to_process.name}")
                 else:
-                    # Fallback if image file is not added yet
                     st.info(
-                        f"Sample Selected: **{image_to_process.name}**\n\n"
-                        f"*(To show a real photo, place `{image_to_process.name}` inside `assets/samples/`)*",
+                        f"Sample selected: **{image_to_process.name}**",
                         icon=":material/restaurant:",
                     )
             except Exception:
                 st.info("Image loaded successfully.")
 
     with col_results:
-        with st.spinner("🤖 Analyzing dish and assessing Celiac risk..."):
+        with st.spinner("Analyzing dish and assessing risk level..."):
             try:
                 api_response = call_gluten_guard_api(image_to_process)
             except Exception as e:
@@ -123,66 +100,104 @@ if image_to_process is not None:
             celiac_risk = top.get("celiac_risk", "Unknown")
             confidence_pct = round(top.get("confidence", 0) * 100)
             contains_gluten = top.get("contains_gluten")
+            notes = top.get("notes", "")
             questions = top.get("server_questions", [])
 
             gluten_text = "Yes" if contains_gluten is True else ("No" if contains_gluten is False else "Uncertain")
 
-            questions_md = "\n".join(
-                f'{i + 1}. **"{q}"**' for i, q in enumerate(questions)
-            ) if questions else "*No specific questions available.*"
+            # -------------------------------------------------------------
+            # 1. Dish and risk score
+            # -------------------------------------------------------------
+            with st.container(border=True):
+                head_col1, head_col2 = st.columns([0.55, 0.45], vertical_alignment="center")
+                with head_col1:
+                    st.caption("IDENTIFIED DISH")
+                    dish_name = top.get("label", "Unknown")
+                    st.subheader(dish_name)
+                    if confidence_pct > 0:
+                        st.caption(f":material/verified: AI Confidence: {confidence_pct}%")
 
-            text = (
-                f"### Identified Dish: **{top.get('label', 'Unknown')}**\n\n"
-                f"**Celiac Risk:** {celiac_risk}\n\n"
-                f"**Contains Gluten:** {gluten_text}\n\n"
-                f"**Model Confidence:** {confidence_pct}%\n\n"
-                f"---\n\n"
-                f"**Risk Analysis:** {top.get('notes', '')}\n\n"
-                f"#### 📋 Questions to ask your server:\n{questions_md}"
-            )
-            has_result = True
+                    st.caption(
+                        "⚠️ *This is AI driven. Results might be wrong. "
+                        "If incorrect, select the correct food category from the Food Categories page.*"
+                    )
+                    st.page_link(
+                        "app_pages/food_categories.py",
+                        label="Select correct food category",
+                        icon=":material/restaurant_menu:",
+                    )
+
+                with head_col2:
+                    risk_images = {
+                        "High": "assets/risk_score/high.png",
+                        "Medium": "assets/risk_score/mid.png",
+                        "Mid": "assets/risk_score/mid.png",
+                        "Low": "assets/risk_score/low.png",
+                        "Unknown": "assets/risk_score/unknown",
+                    }
+                    risk_img_path = risk_images.get(celiac_risk, None)
+                    if risk_img_path and os.path.exists(risk_img_path):
+                        st.image(risk_img_path, width="stretch")
+                    else:
+                        st.caption(f"Risk score: {celiac_risk}")
+
+            # -------------------------------------------------------------
+            # 2. Celiac risk and contains gluten
+            # -------------------------------------------------------------
+            m1, m2 = st.columns(2)
+            with m1:
+                with st.container(border=True):
+                    risk_icons = {
+                        "High": ":material/warning:",
+                        "Medium": ":material/info:",
+                        "Mid": ":material/info:",
+                        "Low": ":material/check_circle:",
+                    }
+                    icon = risk_icons.get(celiac_risk, ":material/help_outline:")
+                    st.metric(
+                        label="Celiac risk",
+                        value=f"{icon} {celiac_risk}" if icon else celiac_risk,
+                    )
+
+            with m2:
+                with st.container(border=True):
+                    gluten_icons = {
+                        "Yes": ":material/cancel:",
+                        "No": ":material/check_circle:",
+                        "Uncertain": ":material/help_outline:",
+                    }
+                    g_icon = gluten_icons.get(gluten_text, "")
+                    st.metric(
+                        label="Contains gluten",
+                        value=f"{g_icon} {gluten_text}" if g_icon else gluten_text,
+                    )
+
+            # -------------------------------------------------------------
+            # 3. Risk analysis
+            # -------------------------------------------------------------
+            with st.container(border=True):
+                st.markdown("##### :material/analytics: Risk analysis")
+                if notes:
+                    st.write(notes)
+                else:
+                    st.caption("No additional analysis details available.")
+
+            # -------------------------------------------------------------
+            # 4. Questions for the restaurant staff
+            # -------------------------------------------------------------
+            with st.container(border=True):
+                st.markdown("##### :material/quiz: Questions for the restaurant staff")
+                if questions:
+                    for i, q in enumerate(questions, 1):
+                        st.markdown(f"**{i}.** {q}")
+                else:
+                    st.caption("No specific questions generated for this meal.")
+
         else:
-            celiac_risk = "Unknown"
-            text = "*No predictions returned from the API.*"
-            has_result = False
-
-        # Risk level styling
-        risk_styles = {
-            "High":   {"color": "#e11d48", "bg": "#fff1f2", "icon": "🚨", "label": "HIGH RISK"},
-            "Medium": {"color": "#d97706", "bg": "#fffbeb", "icon": "⚠️", "label": "MODERATE RISK"},
-            "Low":    {"color": "#059669", "bg": "#f0fdf4", "icon": "✅", "label": "LOW RISK"},
-            "Unknown": {"color": "#6366f1", "bg": "#eef2ff", "icon": "❓", "label": "UNKNOWN RISK"},
-        }
-        rs = risk_styles.get(celiac_risk, risk_styles["Unknown"])
-        risk_color, risk_bg, badge_icon, risk_label = rs["color"], rs["bg"], rs["icon"], rs["label"]
-
-        # Risk Assessment Card
-        with st.container(border=True):
-            st.caption("CELIAC GLUTEN RISK ASSESSMENT")
-
-            # Big risk-level badge
-            st.markdown(
-                f"""
-                <div style="background-color: {risk_bg}; border: 1.5px solid {risk_color}; border-radius: 12px; padding: 20px 16px; text-align: center; margin-bottom: 12px;">
-                    <div style="font-size: 1.6rem; margin-bottom: 4px;">{badge_icon}</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: {risk_color}; letter-spacing: 0.03em; line-height: 1.1;">
-                        {risk_label}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            # Quick-glance metrics
-            if has_result:
-                m1, m2 = st.columns(2)
-                m1.metric("Contains Gluten", gluten_text)
-                m2.metric("Model Confidence", f"{confidence_pct}%")
-
-    # Detailed Analysis Text Card (Second returned field)
-    st.markdown("##")
-    with st.container(border=True):
-        st.markdown(text)
+            st.error("No predictions returned from the API.")
 
 else:
-    st.info("👆 Please upload an image, take a photo, or choose a sample dish above to start.", icon=":material/touch_app:")
+    st.info(
+        "Upload an image, take a photo, or select a sample dish above to start your assessment.",
+        icon=":material/touch_app:",
+    )
