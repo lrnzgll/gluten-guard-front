@@ -89,31 +89,69 @@ elif input_mode == "✨ Sample dishes":
 
 st.divider()
 
+
 # Process image if available
 if image_to_process is not None:
+
+    # Keep the original input for the API
+    original_image_input = image_to_process
+
+    # -------------------------------------------------------------
+    # Create a separate image for DISPLAY ONLY
+    # -------------------------------------------------------------
+    try:
+        if hasattr(image_to_process, "getvalue"):
+            display_image = Image.open(image_to_process).copy()
+
+        elif hasattr(image_to_process, "path") and os.path.exists(image_to_process.path):
+            display_image = Image.open(image_to_process.path).copy()
+
+        else:
+            display_image = None
+
+        # Resize DISPLAY image only
+        if display_image is not None:
+            display_image.thumbnail(
+                (500, 500),
+                Image.Resampling.LANCZOS
+            )
+
+    except Exception:
+        display_image = None
+
     col_img, col_results = st.columns([1, 1.25], gap="large")
 
+    # -------------------------------------------------------------
+    # Display image
+    # -------------------------------------------------------------
     with col_img:
-        with st.container(border=True):
+        with st.container(border=True, width="content", height="content"):
             st.markdown("##### Dish photo")
-            try:
-                if hasattr(image_to_process, "getvalue"):
-                    img = Image.open(image_to_process)
-                    st.image(img, width="stretch")
-                elif hasattr(image_to_process, "path") and os.path.exists(image_to_process.path):
-                    st.image(image_to_process.path, width="stretch", caption=f"Sample: {image_to_process.name}")
-                else:
-                    st.info(
-                        f"Sample selected: **{image_to_process.name}**",
-                        icon=":material/restaurant:",
-                    )
-            except Exception:
-                st.info("Image loaded successfully.")
 
+            if display_image is not None:
+                st.image(
+                    display_image,
+                    width="content"
+                    #width=min(display_image.width, 500)
+                    #caption=f"{image_to_process.name}",
+                )
+
+            elif hasattr(image_to_process, "name"):
+                st.info(
+                    f"Sample selected: **{image_to_process.name}**",
+                    icon=":material/restaurant:",
+                )
+
+    # -------------------------------------------------------------
+    # Send ORIGINAL image to API
+    # -------------------------------------------------------------
     with col_results:
         with st.spinner("Analyzing dish and assessing risk level..."):
             try:
-                api_response = call_gluten_guard_api(image_to_process)
+                api_response = call_gluten_guard_api(
+                    original_image_input
+                )
+
             except Exception as e:
                 api_response = None
                 st.error(f"API request failed: {e}")
