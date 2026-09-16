@@ -29,19 +29,8 @@ with col_text1:
 
 with col_img1:
     with st.container(border=True):
-        st.caption("📷 **AI Dish Detection Preview**")
-        # Visual mock plate representation
-        st.markdown(
-            """
-            <div style="position: relative; background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); padding: 24px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0;">
-                <div style="font-size: 80px; line-height: 1; margin-bottom: 12px; filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.1));">🍝</div>
-                <div style="display: inline-block; background-color: #059669; color: white; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                    ✓ Detected: Pasta Carbonara <span style="opacity: 0.85; font-size: 0.8rem; font-weight: 400;">(98.4%)</span>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.caption("📷 **Grad-CAM visualization**")
+        st.image("assets/GRAD-CAM.png", width=500)
 
 st.markdown("##")
 

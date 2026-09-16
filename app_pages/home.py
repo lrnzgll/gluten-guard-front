@@ -126,6 +126,14 @@ if image_to_process is not None:
             notes = top.get("notes", "")
             questions = top.get("server_questions", [])
 
+            # Override all fields if confidence is very low (< 15%)
+            if confidence_pct < 20:
+                celiac_risk = "Unknown"
+                contains_gluten = None
+                notes = "Not recognised due to low confidence"
+                questions = []
+                top["label"] = "Unknown"
+
             gluten_text = "Yes" if contains_gluten is True else ("No" if contains_gluten is False else "Uncertain")
 
             # -------------------------------------------------------------
@@ -156,7 +164,7 @@ if image_to_process is not None:
                         "Medium": "assets/risk_score/mid.png",
                         "Mid": "assets/risk_score/mid.png",
                         "Low": "assets/risk_score/low.png",
-                        "Unknown": "assets/risk_score/unknown",
+                        "Unknown": "assets/risk_score/unknown.png",
                     }
                     risk_img_path = risk_images.get(celiac_risk, None)
                     if risk_img_path and os.path.exists(risk_img_path):
