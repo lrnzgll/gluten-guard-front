@@ -13,17 +13,6 @@ def get_base64_logo():
             return base64.b64encode(f.read()).decode()
     return None
 
-# Image resize function(images above 500px)
-def resize_image(image, max_size=500):
-    # Keep the original image if both dimensions are <= 500
-    if image.width <= max_size and image.height <= max_size:
-        return image
-
-    # Resize while preserving aspect ratio
-    image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
-
-    return image
-
 # Header with Logo and Two-Tone Title
 logo_b64 = get_base64_logo()
 if logo_b64:
@@ -98,42 +87,71 @@ elif input_mode == "✨ Sample dishes":
                 self.path = os.path.join("assets", "samples", name)
         image_to_process = SampleFile(st.session_state["sample_active"])
 
-# Resize selected image to a maximum of 500 x 500 pixels
-if image_to_process is not None:
-
-    if hasattr(image_to_process, "path"):
-        # Sample image
-        image = Image.open(image_to_process.path)
-
-    else:
-        # Uploaded file or camera input
-        image = Image.open(image_to_process)
-
-    image = resize_image(image)
-
-    # Store the resized PIL image
-    image_to_process = image
-
 st.divider()
+
 
 # Process image if available
 if image_to_process is not None:
-    col_img, col_results = st.columns([1, 1.25], gap="large")
 
-    with col_img:
-        with st.container(border=True):
-            st.markdown("##### Dish photo")
+    # Keep the original input for the API
+    original_image_input = image_to_process
 
-            st.image(
-                image_to_process,
-                caption=f"Image: loaded successfully",
-                width="stretch",
+    # -------------------------------------------------------------
+    # Create a separate image for DISPLAY ONLY
+    # -------------------------------------------------------------
+    try:
+        if hasattr(image_to_process, "getvalue"):
+            display_image = Image.open(image_to_process).copy()
+
+        elif hasattr(image_to_process, "path") and os.path.exists(image_to_process.path):
+            display_image = Image.open(image_to_process.path).copy()
+
+        else:
+            display_image = None
+
+        # Resize DISPLAY image only
+        if display_image is not None:
+            display_image.thumbnail(
+                (500, 500),
+                Image.Resampling.LANCZOS
             )
 
+    except Exception:
+        display_image = None
+
+    col_img, col_results = st.columns([1, 1.25], gap="large")
+
+    # -------------------------------------------------------------
+    # Display image
+    # -------------------------------------------------------------
+    with col_img:
+        with st.container(border=True, width="content", height="content"):
+            st.markdown("##### Dish photo")
+
+            if display_image is not None:
+                st.image(
+                    display_image,
+                    width="content"
+                    #width=min(display_image.width, 500)
+                    #caption=f"{image_to_process.name}",
+                )
+
+            elif hasattr(image_to_process, "name"):
+                st.info(
+                    f"Sample selected: **{image_to_process.name}**",
+                    icon=":material/restaurant:",
+                )
+
+    # -------------------------------------------------------------
+    # Send ORIGINAL image to API
+    # -------------------------------------------------------------
     with col_results:
         with st.spinner("Analyzing dish and assessing risk level..."):
             try:
-                api_response = call_gluten_guard_api(image_to_process)
+                api_response = call_gluten_guard_api(
+                    original_image_input
+                )
+
             except Exception as e:
                 api_response = None
                 st.error(f"API request failed: {e}")
@@ -145,6 +163,14 @@ if image_to_process is not None:
             contains_gluten = top.get("contains_gluten")
             notes = top.get("notes", "")
             questions = top.get("server_questions", [])
+
+            # Override all fields if confidence is very low (< 15%)
+            if confidence_pct < 20:
+                celiac_risk = "Unknown"
+                contains_gluten = None
+                notes = "Not recognised due to low confidence"
+                questions = []
+                top["label"] = "Unknown"
 
             gluten_text = "Yes" if contains_gluten is True else ("No" if contains_gluten is False else "Uncertain")
 
@@ -176,7 +202,7 @@ if image_to_process is not None:
                         "Medium": "assets/risk_score/mid.png",
                         "Mid": "assets/risk_score/mid.png",
                         "Low": "assets/risk_score/low.png",
-                        "Unknown": "assets/risk_score/unknown",
+                        "Unknown": "assets/risk_score/unknown.png",
                     }
                     risk_img_path = risk_images.get(celiac_risk, None)
                     if risk_img_path and os.path.exists(risk_img_path):
