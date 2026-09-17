@@ -1,5 +1,24 @@
 import streamlit as st
 
+st.markdown(
+     """
+     <style>
+     /* Main app background */
+     .stApp {
+        background-color: #EFEDE7;
+     }
+
+     /* Main content area */
+     .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+     }
+     </style>
+     """,
+     unsafe_allow_html=True,
+)
+
+
 st.set_page_config(
     page_title="GlutenGuard",
     page_icon="🛡️",
@@ -24,4 +43,20 @@ page = st.navigation(
     position="top",
 )
 
+st.markdown(
+    """
+    <style>
+    /* Top navigation background */
+    [data-testid="stHeader"] {
+        background-color: #FFF3D8;
+    }
+
+    /* Navigation container */
+    [data-testid="stHeader"] [data-testid="stToolbar"] {
+        background-color: #FFF3D8;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 page.run()
