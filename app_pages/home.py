@@ -30,7 +30,8 @@ if logo_b64:
 else:
     st.markdown("# :orange[Gluten]:blue[Guard]")
 
-st.caption("AI-powered gluten-risk assessment for meals. Snap, assess, eat safely.")
+st.markdown('<span style="color: black;">AI-powered gluten-risk assessment for meals. Snap, assess, eat safely.</span>',
+    unsafe_allow_html=True)
 st.space("small")
 
 # Photo Input Selection
@@ -43,6 +44,28 @@ input_mode = st.segmented_control(
 
 uploaded_file = None
 image_to_process = None
+
+st.markdown(
+    """
+    <style>
+    /* Upload section */
+    [data-testid="stFileUploader"] {
+        background-color: #EFEDE7;
+        border: 1px solid #CCCCCC;
+        border-radius: 12px;
+        padding: 15px;
+    }
+
+    /* Upload drop zone */
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #EFEDE7;
+        border: 1px dashed #0000;
+        border-radius: 10px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 if input_mode == "📁 Upload image":
     uploaded_file = st.file_uploader(
@@ -180,16 +203,32 @@ if image_to_process is not None:
             with st.container(border=True):
                 head_col1, head_col2 = st.columns([0.55, 0.45], vertical_alignment="center")
                 with head_col1:
-                    st.caption("IDENTIFIED DISH")
+                    st.markdown(
+                        '<span style="color: black;">IDENTIFIED DISH</span>', unsafe_allow_html=True
+                    )
                     dish_name = top.get("label", "Unknown")
                     st.subheader(dish_name)
                     if confidence_pct > 0:
-                        st.caption(f":material/verified: AI Confidence: {confidence_pct}%")
+                        st.markdown(
+                            f':material/verified: <span style="color: black;">AI Confidence: {confidence_pct}%</span>',
+                            unsafe_allow_html=True,
+                        )
+                    st.markdown(
+                        """
+                        <p style="
+                            color: #000000;
+                            font-size: 0.85rem;
+                            margin-top: 2px;
+                            margin-bottom: 8px;
+                        ">
+                        ⚠️ <i>This is AI driven. Results might be wrong.
+                        If incorrect, select the correct food category from the
+                        Food Categories page.</i>
+                        </p>
+                        """,
+                        unsafe_allow_html=True,
+                        )
 
-                    st.caption(
-                        "⚠️ *This is AI driven. Results might be wrong. "
-                        "If incorrect, select the correct food category from the Food Categories page.*"
-                    )
                     st.page_link(
                         "app_pages/food_categories.py",
                         label="Select correct food category",
